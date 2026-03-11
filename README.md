@@ -275,17 +275,17 @@ Disponibiliza a tensão de +12V DC regulado (pino 1) e o GND (pino 2) para o dis
 
 ## Visualização 3D
 
-**Vista frontal (topo):**
+**Vista Frontal (topo):**
 
 ![3D Vista 1](3D,%201.png)
 
-**Vista traseira (trilhas):**
-
-![3D Vista 2](3D,%202.png)
-
-**Vista inferior:**
+**Vista Traseira (trilhas):**
 
 ![3D Vista 3](3D,%203.png)
+
+**Vista Lateral:**
+
+![3D Vista 2](3D,%202.png)
 
 ---
 
