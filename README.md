@@ -6,6 +6,21 @@
 
 ---
 
+## 📋 Sumário
+
+- [Introdução](#introdução)
+- [Objetivo](#objetivo)
+- [Componentes Utilizados](#componentes-utilizados)
+- [Esquemático do Circuito](#esquemático-do-circuito)
+- [Jornada da Onda Elétrica](#jornada-da-onda-elétrica)
+- [Funcionamento Detalhado de Cada Componente](#funcionamento-detalhado-de-cada-componente)
+- [Layout da PCB](#layout-da-pcb)
+- [Visualização 3D](#visualização-3d)
+- [Software Utilizado](#software-utilizado)
+- [Considerações Técnicas](#considerações-técnicas)
+
+---
+
 ## Introdução
 
 Este projeto consiste no desenvolvimento de um **carregador de celular baseado em fonte de alimentação linear regulada de 12V**, utilizando o regulador integrado **7812**. Todo o projeto foi desenvolvido no software **Proteus 8 Professional**, contemplando três etapas:
@@ -51,75 +66,200 @@ Demonstrar na prática o funcionamento de uma **fonte linear regulada**, percorr
 
 ![Esquemático](Esquemático.png)
 
-O esquemático foi desenvolvido no ISIS do Proteus 8 e apresenta todas as conexões e componentes do circuito. Pontos importantes:
+---
 
-- Todas as conexões seguem o fluxo: **Entrada AC → Retificação → Filtragem → Regulação → Saída**
-- Os capacitores C2 e C3 estão conectados **em paralelo** na linha de alimentação, não em série
-- O LED indicador está conectado em série com R1, garantindo limitação de corrente
+## Jornada da Onda Elétrica
+
+Esta seção mostra visualmente o que acontece com a forma de onda elétrica ao passar por cada componente do circuito, desde a entrada AC até a saída DC estabilizada.
 
 ---
 
-## Funcionamento do Circuito
+### ⚡ Etapa 0 — Rede Elétrica (antes do transformador)
 
-### 1. Entrada de Tensão AC — J2 (SIL-100-02)
+```
+Tensão: 220V AC
+        
+  +220V  ╭───╮           ╭───╮
+         │   │           │   │
+─────────╯   ╰───────────╯   ╰─────
+         
+  -220V      ╭───╮           ╭───╮
+             │   │           │   │
+```
 
-O conector J2 recebe os dois terminais do secundário do transformador externo. O transformador, não presente na placa, é responsável por reduzir a tensão da rede elétrica (220V) para um nível adequado à entrada do circuito retificador — tipicamente entre **14V e 18V AC**.
-
----
-
-### 2. Retificação — BR1 (BRIDGE)
-
-A tensão AC proveniente de J2 é aplicada aos terminais **~** da ponte retificadora BR1. Internamente, a ponte é composta por **quatro diodos** dispostos em configuração de ponte de Graetz, realizando a **retificação em onda completa**.
-
-- Nos semiciclos positivos, dois diodos conduzem e a tensão aparece positiva na saída
-- Nos semiciclos negativos, os outros dois diodos conduzem, mantendo a polaridade positiva na saída
-
-O resultado é uma tensão **DC pulsante**, com frequência de 120Hz (dobro da rede elétrica).
+A rede elétrica fornece **220V AC** — uma onda senoidal que oscila entre positivo e negativo continuamente em 60Hz (60 vezes por segundo). Essa tensão é alta demais e alternada demais para alimentar circuitos eletrônicos diretamente.
 
 ---
 
-### 3. Filtragem — C1 (1000µF) e C2 (100nF)
+### 🔌 Etapa 1 — Transformador → J2 (SIL-100-02)
 
-A tensão DC pulsante ainda apresenta variações chamadas de **ripple**. Para suavizá-la:
+```
+Tensão: ~15V AC (secundário)
 
-- **C1 (1000µF)** — capacitor eletrolítico de grande valor que carrega durante os picos de tensão e descarrega nos vales, suavizando significativamente a tensão
-- **C2 (100nF)** — capacitor cerâmico responsável pelo desacoplamento de ruídos de **alta frequência** que o C1 não consegue eliminar por sua limitação de resposta
+  +15V  ╭──╮        ╭──╮
+        │  │        │  │
+────────╯  ╰────────╯  ╰────────
+        
+  -15V     ╭──╮        ╭──╮
+            │  │        │  │
+```
 
-Após essa etapa, a tensão já está muito mais próxima de uma tensão contínua estável.
+O transformador (externo à placa) **reduz a amplitude da onda** de 220V para aproximadamente 15V AC, mantendo o formato senoidal. A onda continua alternando entre positivo e negativo — ainda é AC. O conector **J2** é onde essa tensão reduzida entra na placa.
 
----
-
-### 4. Regulação — U1 (7812)
-
-O coração do circuito é o **regulador linear 7812**. Ele recebe a tensão filtrada no pino de entrada e mantém a saída fixada em **12V DC**, independentemente de pequenas variações na entrada ou na carga.
-
-| Pino | Nome | Função |
-|---|---|---|
-| 1 | VI | Entrada de tensão (>14V recomendado) |
-| 2 | GND | Terra |
-| 3 | VO | Saída regulada — 12V DC |
-
-O capacitor **C3 (1nF)** conectado à saída do regulador melhora a estabilidade, suprimindo oscilações e ruídos de alta frequência na saída.
+> 📌 A onda ainda oscila entre +15V e -15V, mas agora em amplitude segura para o circuito.
 
 ---
 
-### 5. Indicador de Funcionamento — D1 (LED) + R1 (10Ω)
+### 🔄 Etapa 2 — Ponte Retificadora → BR1 (BRIDGE)
 
-O LED D1 está conectado entre a saída regulada (12V) e o GND, em série com o resistor R1 de **10Ω**.
+```
+Tensão: DC pulsante (~15V)
 
-- Quando a fonte está energizada e funcionando corretamente, o LED acende
-- O R1 limita a corrente que atravessa o LED, protegendo-o de danos por sobrecorrente
+  +15V  ╭──╮  ╭──╮  ╭──╮  ╭──╮
+        │  │  │  │  │  │  │  │
+────────╯  ╰──╯  ╰──╯  ╰──╯  ╰──
+  
+   0V
+```
+
+A ponte retificadora **"dobra" a onda para cima** — ela pega os semiciclos negativos (que iam para baixo) e os inverte, fazendo com que a tensão nunca mais fique negativa. Isso é chamado de **retificação em onda completa**.
+
+> 📌 A onda agora só tem valores positivos, mas ainda sobe e desce rapidamente — é um DC pulsante, não estável. A frequência das pulsações passa a ser 120Hz (o dobro da rede).
 
 ---
 
-### 6. Saída — J1 (CONN-SIL2)
+### 🏔️ Etapa 3 — Filtro Principal → C1 (1000µF)
 
-O conector J1 disponibiliza a tensão regulada ao dispositivo externo:
+```
+Tensão: DC com leve ripple (~15V)
 
-| Pino | Sinal |
-|---|---|
-| 1 | +12V DC regulado |
-| 2 | GND |
+  +15V  ╭─────────────────────────
+        │ ≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈  ← pequenas ondulações (ripple)
+        │
+   0V
+```
+
+O capacitor eletrolítico de **1000µF funciona como um reservatório de energia**. Ele carrega durante os picos da onda pulsante e descarrega quando a tensão começa a cair, preenchendo os "vales". O resultado é uma tensão quase contínua, com pequenas oscilações chamadas de **ripple**.
+
+> 📌 Quanto maior o capacitor, menor o ripple. O C1 de 1000µF é grande o suficiente para suavizar bem a tensão neste circuito.
+
+---
+
+### 🔇 Etapa 3.1 — Filtro de Ruído → C2 (100nF)
+
+```
+Sem C2:                         Com C2:
+          ___/\/\/\___                    ──────────────
+  ───────╱             ╲───      ──────────────────────
+         ruídos HF visíveis      ruídos eliminados
+```
+
+O capacitor cerâmico de **100nF age como um filtro passa-baixa** para os ruídos de alta frequência (interferências eletromagnéticas, chaveamentos, etc.) que o C1 de grande valor não consegue eliminar por sua lentidão de resposta. Ele oferece um caminho de baixa impedância para que esses ruídos se dissipem para o GND antes de chegar ao regulador.
+
+> 📌 O C1 cuida das oscilações lentas (baixa frequência). O C2 cuida dos ruídos rápidos (alta frequência). Juntos, entregam uma tensão limpa ao regulador.
+
+---
+
+### 📐 Etapa 4 — Regulador de Tensão → U1 (7812)
+
+```
+Entrada (VI):                   Saída (VO):
+  +15V  ╭────────────────        +12V  ════════════════
+        │ ≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈                linha perfeitamente reta
+        │
+   0V                             0V
+```
+
+O regulador **7812 é o componente mais importante do circuito**. Ele recebe a tensão filtrada (com leve ripple em ~15V) e usa internamente um circuito de controle para manter a saída **travada em exatamente 12V**, independente de variações na entrada ou na corrente consumida pela carga.
+
+A diferença de tensão entre entrada e saída (neste caso ~3V) é dissipada como **calor** pelo regulador — por isso ele esquenta durante o funcionamento.
+
+> 📌 Antes do 7812: tensão variável com ripple. Depois do 7812: linha reta e estável em 12V. Esta é a etapa que transforma a fonte em "regulada".
+
+---
+
+### 🔇 Etapa 4.1 — Estabilização da Saída → C3 (1nF)
+
+```
+Sem C3:                         Com C3:
+  +12V  ══════/\/\══════          +12V  ════════════════
+        pequenas oscilações             saída limpa e estável
+```
+
+O capacitor cerâmico de **1nF na saída do regulador** elimina qualquer oscilação residual ou ruído de alta frequência que o próprio 7812 possa introduzir na saída. Ele melhora a estabilidade do regulador, especialmente em variações rápidas de carga.
+
+> 📌 É um capacitor pequeno, mas essencial para garantir que a saída seja livre de ruídos de alta frequência.
+
+---
+
+### 💡 Etapa 5 — Indicador LED → D1 + R1
+
+```
+  +12V ──── R1 (10Ω) ──── D1 (LED) ──── GND
+  
+  Corrente: I = (12V - 2V) / 10Ω ≈ 1A  ← R1 protege o LED
+```
+
+Com a fonte funcionando, a tensão de 12V força corrente pelo resistor R1 e pelo LED D1. O resistor **limita a corrente** para que o LED não seja danificado por excesso. Enquanto houver tensão na saída, o LED permanece aceso, indicando visualmente que o circuito está energizado.
+
+---
+
+### 🔋 Etapa 6 — Saída Regulada → J1 (CONN-SIL2)
+
+```
+  +12V  ════════════════════════════════  → Pino 1 de J1
+  
+   GND  ────────────────────────────────  → Pino 2 de J1
+```
+
+A tensão final — **12V DC estável, contínua e livre de ruídos** — é disponibilizada no conector J1 para alimentar o dispositivo externo.
+
+---
+
+### 🗺️ Resumo Visual da Jornada Completa
+
+```
+ REDE         TRANSF.       RETIFIC.       FILTRO        REGULADOR      SAÍDA
+ 220V AC  →   15V AC   →   DC pulsante →  DC suavizado → 12V DC reto →  12V DC
+ 
+ ╭──╮         ╭─╮          ╭╮╭╮╭╮╭╮       ╭────────      ══════════    ══════════
+ │  │   →     │ │    →     ││││││││  →    │≈≈≈≈≈≈≈≈  →               →
+─╯  ╰─      ──╯ ╰──        ╯╯╯╯╯╯╯╯      │           
+ -220V         -15V           0V           0V            0V              0V
+ 
+              J2           BR1           C1+C2          7812           J1
+```
+
+---
+
+## Funcionamento Detalhado de Cada Componente
+
+### J2 — Conector de Entrada (SIL-100-02)
+Ponto de entrada do circuito. Recebe os dois terminais do secundário do transformador externo e conduz a tensão AC reduzida para a ponte retificadora.
+
+### BR1 — Ponte Retificadora (BRIDGE)
+Composta internamente por quatro diodos em configuração de ponte de Graetz. Converte a tensão AC em DC pulsante por meio da retificação em onda completa, invertendo os semiciclos negativos para positivos.
+
+### C1 — Capacitor Eletrolítico (1000µF)
+Filtro principal de baixa frequência. Armazena carga nos picos da tensão pulsante e a libera nos vales, reduzindo drasticamente o ripple e aproximando a tensão de uma linha contínua.
+
+### C2 — Capacitor Cerâmico (100nF)
+Filtro de alta frequência posicionado na entrada do regulador. Oferece baixa impedância para ruídos HF, desviando-os para o GND antes que perturbem o regulador.
+
+### U1 — Regulador 7812
+Mantém a tensão de saída fixada em 12V DC independente de variações na entrada (dentro dos limites do componente) ou na corrente de carga. Dissipa o excesso de tensão em forma de calor.
+
+### C3 — Capacitor Cerâmico (1nF)
+Capacitor de saída do regulador. Suprime oscilações e ruídos HF que o regulador possa introduzir, garantindo uma saída limpa e estável.
+
+### R1 — Resistor (10Ω)
+Limita a corrente que flui pelo LED D1, protegendo-o contra sobrecorrente.
+
+### D1 — LED Indicador
+Acende sempre que a fonte estiver energizada, fornecendo indicação visual imediata de funcionamento.
+
+### J1 — Conector de Saída (CONN-SIL2)
+Disponibiliza a tensão de +12V DC regulado (pino 1) e o GND (pino 2) para o dispositivo a ser alimentado.
 
 ---
 
@@ -127,13 +267,9 @@ O conector J1 disponibiliza a tensão regulada ao dispositivo externo:
 
 ![PCB Layout](PCD.png)
 
-A placa foi projetada com as seguintes especificações:
-
 - **Dimensões:** 80mm x 40mm
 - **Camadas de trilha:** somente **Bottom Layer** (parte inferior da placa)
 - **Identificação:** nome do autor na silkscreen da placa
-
-O roteamento foi organizado seguindo o fluxo lógico do circuito, da esquerda (entrada AC) para a direita (saída DC), facilitando a compreensão e montagem.
 
 ---
 
@@ -155,8 +291,6 @@ O roteamento foi organizado seguindo o fluxo lógico do circuito, da esquerda (e
 
 ![3D Vista 4](3D,%204.png)
 
-A visualização 3D do Proteus permite observar a disposição real dos componentes após a fabricação da placa, conferindo altura, posicionamento e encapsulamento de cada componente.
-
 ---
 
 ## Software Utilizado
@@ -173,10 +307,10 @@ A visualização 3D do Proteus permite observar a disposição real dos componen
 
 ## Considerações Técnicas
 
-- O regulador **7812 dissipa calor** em forma de energia — para aplicações com correntes elevadas, recomenda-se o uso de um dissipador de calor (heatsink) acoplado ao componente
-- A tensão de entrada deve ser **no mínimo 14V AC** no secundário do transformador para garantir regulação correta após a retificação e queda interna do 7812
-- O circuito foi projetado para fins **didáticos e de simulação** no Proteus; para uso real, devem ser observadas as normas de segurança elétrica aplicáveis
-- A configuração com **PRIMITIVE=NULL** no J1 foi necessária para que o Proteus simulasse o circuito sem erro, já que conectores físicos não possuem modelo SPICE
+- O regulador **7812 dissipa calor** — para correntes elevadas, recomenda-se dissipador de calor (heatsink)
+- A tensão de entrada deve ser **no mínimo 14V AC** no secundário do transformador para garantir regulação correta
+- O circuito foi projetado para fins **didáticos e de simulação** no Proteus
+- A configuração **PRIMITIVE=NULL** no J1 foi necessária para simulação, pois conectores físicos não possuem modelo SPICE
 
 ---
 
