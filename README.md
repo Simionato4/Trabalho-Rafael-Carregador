@@ -110,7 +110,7 @@ O transformador (externo à placa) **reduz a amplitude da onda** de 220V para ap
 
 ---
 
-### 🔄 Etapa 2 — Ponte Retificadora → BR1 (BRIDGE)
+### 🔄 Etapa 2 — Ponte Retificadora → BR1 (BRIDGE)f
 
 ```
 Tensão: DC pulsante (~15V)
@@ -265,7 +265,7 @@ Disponibiliza a tensão de +12V DC regulado (pino 1) e o GND (pino 2) para o dis
 
 ## Layout da PCB
 
-![PCB Layout](PCD.png)
+![PCB Layout](PCB.png)
 
 - **Dimensões:** 80mm x 40mm
 - **Camadas de trilha:** somente **Bottom Layer** (parte inferior da placa)
@@ -286,10 +286,6 @@ Disponibiliza a tensão de +12V DC regulado (pino 1) e o GND (pino 2) para o dis
 **Vista inferior:**
 
 ![3D Vista 3](3D,%203.png)
-
-**Vista lateral:**
-
-![3D Vista 4](3D,%204.png)
 
 ---
 
